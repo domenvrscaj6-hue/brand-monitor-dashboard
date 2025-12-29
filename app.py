@@ -70,27 +70,27 @@ elif navigation == "Reviews Analysis":
             filtered_df = reviews_df[(reviews_df['Year'] == int(selected_year)) & (reviews_df['Datum'].dt.month == selected_month_idx)].copy()
 
         if not filtered_df.empty:
-            # AI analiza
-            with st.spinner('Analiziram sentiment...'):
-                results = sentiment_pipeline(filtered_df['Vsebina'].tolist())
-                filtered_df['label'] = [res['label'] for res in results]
-                filtered_df['score'] = [res['score'] for res in results]
+            # Gumb, ki prepreči, da se Render sesuje ob zagonu
+            if st.button("🚀 Run AI Sentiment Analysis"):
+                with st.spinner('Loading AI model and analyzing...'):
+                    results = sentiment_pipeline(filtered_df['Vsebina'].tolist())
+                    filtered_df['label'] = [res['label'] for res in results]
+                    filtered_df['score'] = [res['score'] for res in results]
 
-            # Izris grafov in tabele
-            c1, c2 = st.columns([1, 3])
-            with c1:
-                st.subheader("Stats")
-                avg_conf = filtered_df['score'].mean() * 100
-                st.metric("Avg Confidence", f"{avg_conf:.2f}%")
-                sentiment_counts = filtered_df['label'].value_counts()
-                st.bar_chart(sentiment_counts)
-
-            with c2:
-                st.subheader("Detailed Review List")
-                def color_sentiment(val):
-                    color = '#28a745' if val == 'POSITIVE' else '#dc3545'
-                    return f'background-color: {color}; color: white; font-weight: bold'
-                
-                st.dataframe(filtered_df.style.applymap(color_sentiment, subset=['label']), use_container_width=True)
-        else:
-            st.info("Ni podatkov za izbrano obdobje.")
+                    # Prikaz rezultatov
+                    c1, c2 = st.columns([1, 3])
+                    with c1:
+                        st.subheader("Stats")
+                        avg_conf = filtered_df['score'].mean() * 100
+                        st.metric("Avg Confidence", f"{avg_conf:.2f}%")
+                        st.bar_chart(filtered_df['label'].value_counts())
+                    
+                    with c2:
+                        st.subheader("Detailed Review List")
+                        def color_sentiment(val):
+                            color = '#28a745' if val == 'POSITIVE' else '#dc3545'
+                            return f'background-color: {color}; color: white; font-weight: bold'
+                        
+                        st.dataframe(filtered_df.style.applymap(color_sentiment, subset=['label']), use_container_width=True)
+            else:
+                st.info("Pritisni zgornji gumb za začetek AI analize. To prepreči preobremenitev strežnika.")
