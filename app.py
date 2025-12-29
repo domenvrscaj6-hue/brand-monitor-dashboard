@@ -58,15 +58,19 @@ elif navigation == "Reviews Analysis":
         # Filtri (Year in Month slider)
         col1, col2 = st.columns(2)
         with col1:
-            selected_year = st.selectbox("Select Year:", sorted(reviews_df['Year'].unique(), reverse=True))
+            # Ustvarimo seznam let in dodamo "All" na začetek
+            years_list = ["All"] + sorted(reviews_df['Year'].unique().tolist(), reverse=True)
+            selected_year = st.selectbox("Select Year:", years_list)
         with col2:
             month_names = ["January", "February", "March", "April", "May", "June", 
                            "July", "August", "September", "October", "November", "December"]
             selected_month_idx = st.select_slider("Select Month:", options=range(1, 13), format_func=lambda x: month_names[x-1])
 
-        # Filtriranje podatkov
-        filtered_df = reviews_df[(reviews_df['Year'] == selected_year) & (reviews_df['Datum'].dt.month == selected_month_idx)].copy()
-
+        # Logika filtriranja
+        if selected_year == "All":
+            filtered_df = reviews_df.copy()
+        else:
+            filtered_df = reviews_df[(reviews_df['Year'] == int(selected_year)) & (reviews_df['Datum'].dt.month == selected_month_idx)].copy()
         if not filtered_df.empty:
             # Izvedi AI analizo na filtriranih podatkih
             results = sentiment_pipeline(filtered_df['Vsebina'].tolist())
